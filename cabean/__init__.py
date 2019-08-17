@@ -17,7 +17,7 @@ class _CabeanReprogramming(object):
         self.bn = bn
 
 def matching_attractors(attractors, pstate):
-    return [i for i,a in enumerate(attractors) if a.match_partial_state(pstate)]
+    return [i for i,a in attractors.items() if a.match_partial_state(pstate)]
 
 class OneStepReprogramming(_CabeanReprogramming):
     def __init__(self, bn, init=None):
@@ -32,7 +32,8 @@ class OneStepReprogramming(_CabeanReprogramming):
         for a in aorigs:
             for b in adests:
                 sols = self.controls.get((a,b),[])
-        return stategies
+                strategies.append(sols)
+        return strategies
 
 class AttractorSequentialReprogramming(_CabeanReprogramming):
     def __init__(self, bn, init=None):
@@ -41,7 +42,14 @@ class AttractorSequentialReprogramming(_CabeanReprogramming):
         self.controls = self.result.parse_control3()
 
     def attractor_to_attractor(self, orig, dest):
-        return self.controls
+        aorigs = matching_attractors(self.result.attractors, orig)
+        adests = matching_attractors(self.result.attractors, dest)
+        strategies = [] # TODO object to store state aliases
+        for a in aorigs:
+            for b in adests:
+                sols = self.controls.get((a,b),[])
+                strategies.append(sols)
+        return strategies
 
 class SequentialReprogramming(_CabeanReprogramming):
     def attractor_to_attractor(self, orig, dest, maxsteps=5, limit=200):

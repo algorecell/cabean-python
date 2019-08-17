@@ -39,7 +39,7 @@ class CabeanResult(object):
         for line in self.lines:
             if line.startswith("=") and "=== find attractor #" in line:
                 parts = line.split()
-                num = int(parts[3][1:])
+                num = int(parts[3][1:])-1
                 size = int(parts[5])
             elif num is not None:
                 if line.startswith(":"):
