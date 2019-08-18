@@ -32,7 +32,7 @@ class OneStepReprogramming(_CabeanReprogramming):
         for a in aorigs:
             for b in adests:
                 sols = self.controls.get((a,b),[])
-                strategies.append(sols)
+                strategies.extend(sols)
         return strategies
 
 class AttractorSequentialReprogramming(_CabeanReprogramming):
@@ -48,7 +48,7 @@ class AttractorSequentialReprogramming(_CabeanReprogramming):
         for a in aorigs:
             for b in adests:
                 sols = self.controls.get((a,b),[])
-                strategies.append(sols)
+                strategies.extend(sols)
         return strategies
 
 class SequentialReprogramming(_CabeanReprogramming):
@@ -68,7 +68,7 @@ class SequentialReprogramming(_CabeanReprogramming):
         for aorig in aorigs:
             iface = CabeanIface(self.bn, pc=maxsteps, init=aorig, red=dest)
             result = iface.execute("-control", "2", "-path", l)
-            controls.append(result.parse_control2())
+            controls.extend(result.parse_control2())
         return controls
 
 def attractors(bn, *spec, **kwspec):

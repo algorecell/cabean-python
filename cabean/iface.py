@@ -111,7 +111,7 @@ class CabeanResult(object):
                 controls[(a1,a2)] = []
             elif state == 1 and line.startswith("Sequence of the attractors"):
                 w = line.strip().split()
-                seq = list(map(int, w[4:len(w):2]))
+                seq = [int(aid)-1 for aid in w[4:len(w):2]]
                 steps = []
                 state = 3
             elif state == 3:
