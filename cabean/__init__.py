@@ -19,20 +19,45 @@ class _CabeanReprogramming(object):
 def matching_attractors(attractors, pstate):
     return [i for i,a in attractors.items() if a.match_partial_state(pstate)]
 
+def assignments_from_flips(orig, nodes):
+    orig_state = orig.project(nodes)
+    return dict([(k,1-v if v in [0,1] else "-{}".format(k)) \
+            for (k,v) in org_state])
+
 class OneStepReprogramming(_CabeanReprogramming):
+    """
+    TODO
+    """
     def __init__(self, bn, init=None):
+        """
+        TODO
+        """
         self.iface = CabeanIface(bn, init=init)
         self.result = self.iface.execute("-compositional", "2", "-control", "1")
         self.controls = self.result.parse_control1()
 
     def attractor_to_attractor(self, orig, dest):
+        """
+        TODO
+        """
+        strategies = ReprogrammingStrategies()
         aorigs = matching_attractors(self.result.attractors, orig)
         adests = matching_attractors(self.result.attractors, dest)
-        strategies = [] # TODO object to store state aliases
+        def alias(a):
+            return "a{}".format(a)
+        for a in set(origs).union(adests):
+            strategies.register_alias(alias(a), self.result.attractors[a])
         for a in aorigs:
             for b in adests:
-                sols = self.controls.get((a,b),[])
-                strategies.extend(sols)
+                for sol in self.controls.get((a,b),[]):
+                    orig = self.result.attractors[a]
+                    m = assignments_from_flips(orig, sol)
+                    p = InstantenousPerturbation(m)
+                    if orig.is_single_state:
+                        s = FromSteadyState(alias(a), p)
+                    else:
+                        s = FromSome
+                    strategies.add(s, complete_target=alias(b))
         return strategies
 
 class AttractorSequentialReprogramming(_CabeanReprogramming):
@@ -72,6 +97,9 @@ class SequentialReprogramming(_CabeanReprogramming):
         return controls
 
 def attractors(bn, *spec, **kwspec):
+    """
+    TODO
+    """
     init = PartialState(*spec, **kwspec)
     iface = CabeanIface(bn, init=init)
     result = iface.execute("-compositional", "2")
