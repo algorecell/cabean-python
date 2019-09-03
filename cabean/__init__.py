@@ -21,8 +21,8 @@ def matching_attractors(attractors, pstate):
 
 def assignments_from_flips(orig, nodes):
     orig_state = orig.project(nodes)
-    return dict([(k,1-v if v in [0,1] else "-{}".format(k)) \
-            for (k,v) in org_state])
+    return dict([(k,((1-v) if v in [0,1] else "-{}".format(k))) \
+            for (k,v) in orig_state.items()])
 
 class OneStepReprogramming(_CabeanReprogramming):
     """
@@ -45,19 +45,19 @@ class OneStepReprogramming(_CabeanReprogramming):
         adests = matching_attractors(self.result.attractors, dest)
         def alias(a):
             return "a{}".format(a)
-        for a in set(origs).union(adests):
+        for a in set(aorigs).union(adests):
             strategies.register_alias(alias(a), self.result.attractors[a])
         for a in aorigs:
             for b in adests:
                 for sol in self.controls.get((a,b),[]):
                     orig = self.result.attractors[a]
                     m = assignments_from_flips(orig, sol)
-                    p = InstantenousPerturbation(m)
+                    p = InstantaneousPerturbation(m)
                     if orig.is_single_state:
                         s = FromSteadyState(alias(a), p)
                     else:
-                        s = FromSome
-                    strategies.add(s, complete_target=alias(b))
+                        s = FromOneInLimitCycle(alias(a), p)
+                    strategies.add(s, destination=alias(b))
         return strategies
 
 class AttractorSequentialReprogramming(_CabeanReprogramming):
