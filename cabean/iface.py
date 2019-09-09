@@ -6,6 +6,8 @@ from colomoto.types import *
 
 from cabean.debug import debug_enabled
 
+cabean_base_options = ["-newtarjan", "-newpred"]
+
 class CabeanProcessError(subprocess.CalledProcessError):
     """
     Exception raised when a Pint command fails.
@@ -137,8 +139,8 @@ class CabeanIface(object):
         self.pc = pc
 
     def execute(self, *args, isplfile=None):
-        args = ["cabean", "-asynbn", "-newtarjan", "-newpred", "-steadystates"] \
-                + list(args)
+        args = ["cabean", "-asynbn", "-steadystates"] \
+                + cabean_base_options + list(args)
         if self.pc:
             args += ["-pc", str(self.pc)]
         if debug_enabled():
