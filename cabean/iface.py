@@ -33,7 +33,7 @@ class CabeanResult(object):
     def parse_state(self, spec):
         spec = spec[0:len(spec):2]
         spec = zip(sorted(self.iface.bn.keys()), spec)
-        return [(x,int(v) if v != "-" else "*") for x,v in spec]
+        return PartialState([(x,int(v) if v != "-" else "*") for x,v in spec])
 
     def parse_attractors(self):
         attractors = {}
@@ -84,13 +84,18 @@ class CabeanResult(object):
     def parse_control2(self):
         controls = []
         step = 0
+        mode = 0
         for line in self.lines:
             line = line.strip()
+            if line.startswith("One sequential"):
+                mode = 1
             if line.startswith("STEP "):
                 step = int(line.split()[1])
                 controls.append([])
                 assert len(controls) == step
             if line.startswith("path "):
+                if mode == 1:
+                    controls.append([])
                 control = {}
             if line.startswith("from "):
                 state = self.parse_state(line.split()[2])
