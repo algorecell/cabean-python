@@ -47,11 +47,13 @@ class OneStepReprogramming(_CabeanReprogramming):
     """
     TODO
     """
-    def __init__(self, bn, init=None):
+    def __init__(self, bn, inputs=None):
         """
         TODO
         """
-        self.iface = CabeanIface(bn, init=init)
+        assert not inputs or set(bn.inputs()).issuperset(inputs.keys(),
+            "specified inputs are not input nodes of the Boolean network"
+        self.iface = CabeanIface(bn, init=inputs)
         self.result = self.iface.execute("-compositional", "2", "-control", "1")
         self.controls = self.result.parse_control1()
 
@@ -74,11 +76,13 @@ class AttractorSequentialReprogramming(_CabeanReprogramming):
     """
     TODO
     """
-    def __init__(self, bn, init=None):
+    def __init__(self, bn, inputs=None):
         """
         TODO
         """
-        self.iface = CabeanIface(bn, init=init)
+        assert not inputs or set(bn.inputs()).issuperset(inputs.keys(),
+            "specified inputs are not input nodes of the Boolean network"
+        self.iface = CabeanIface(bn, init=inputs)
         self.result = self.iface.execute("-compositional", "2", "-control", "3")
         self.controls = self.result.parse_control3()
 
@@ -138,6 +142,8 @@ def attractors(bn, *spec, **kwspec):
     TODO
     """
     init = PartialState(*spec, **kwspec)
+    assert set(bn.inputs()).issuperset(init.keys(),
+            "specified inputs are not input nodes of the Boolean network"
     iface = CabeanIface(bn, init=init)
     result = iface.execute("-compositional", "2")
     return list(result.parse_attractors().values())
