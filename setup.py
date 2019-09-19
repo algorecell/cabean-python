@@ -19,6 +19,7 @@ setup(name=NAME,
     description = "Python interface to Cabean",
     install_requires = [
         "colomoto_jupyter",
+        "algorecell_types",
     ],
     classifiers=[
         "Intended Audience :: Science/Research",

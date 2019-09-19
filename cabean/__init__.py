@@ -5,8 +5,8 @@ import itertools
 
 from colomoto.minibn import BooleanNetwork
 
-from colomoto.reprogramming import *
 from colomoto.types import *
+from algorecell_types import *
 
 from .iface import CabeanIface
 
