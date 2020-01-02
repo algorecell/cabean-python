@@ -58,30 +58,78 @@ class CabeanResult(object):
                         attractors[num] = attractors[num].extend(state)
         return attractors
 
-    def parse_control1(self):
+    def parse_OI(self):
         controls = {}
         state = 0
         for line in self.lines:
-            if line.startswith("====== START ONE-STEP INSTANTANEOUS"):
+            if line.startswith("====== ONE-STEP INSTANTANEOUS"):
                 state = 1
             elif state == 1 and line.startswith("source -"):
                 w = line.split()
                 a1, a2 = int(w[2])-1, int(w[5])-1
                 controls[(a1,a2)] = []
                 state = 2
-            elif state == 2 and line.startswith("All the driver nodes"):
+            elif state == 2 and line.startswith("control set:"):
                 state = 3
+                p = {}
+                controls[(a1,a2)].append(p)
+            elif state == 2 and line.startswith("execution time"):
+                state = 1
             elif state == 3:
-                if not line:
-                    state = 1
-                elif line.startswith("**********"):
-                    break
-                else:
-                    nodes = line.split()
-                    controls[(a1,a2)].append(set(nodes))
+                line = line.strip()
+                if line.startswith("nodes - ON"):
+                    nodes = line.split(":")[1].strip().split()
+                    for n in nodes:
+                        p[n] = 1
+                elif line.startswith("nodes - OFF"):
+                    nodes = line.split(":")[1].strip().split()
+                    for n in nodes:
+                        p[n] = 0
+                    state = 2
+        if debug_enabled():
+            print(controls)
         return controls
 
-    def parse_control2(self):
+    def parse_ASI(self):
+        controls = {}
+        state = 0
+        for line in self.lines:
+            line = line.strip()
+            if line.startswith("========= ATTRACTOR-BASED SEQUENTIAL INSTANTANEOUS "):
+                state = 1
+            elif state == 1 and line.startswith("source -"):
+                w = line.split()
+                a1, a2 = int(w[2])-1, int(w[5])-1
+                controls[(a1,a2)] = []
+            elif state == 1 and line.startswith("Sequence of the attractors"):
+                w = line.strip().split()
+                seq = [int(aid)-1 for aid in w[4:len(w):2]]
+                steps = []
+                state = 2
+            elif state == 2 and not line:
+                controls[(a1,a2)].append(list(zip(seq[:-1], steps)))
+                state = 1
+            elif state == 2 and line.startswith("execution time"):
+                state = 1
+            elif state == 2 and line.startswith("control set:"):
+                state = 3
+                p = {}
+                steps.append(p)
+            elif state == 3:
+                if line.startswith("nodes - ON"):
+                    nodes = line.split(":")[1].strip().split()
+                    for n in nodes:
+                        p[n] = 1
+                elif line.startswith("nodes - OFF"):
+                    nodes = line.split(":")[1].strip().split()
+                    for n in nodes:
+                        p[n] = 0
+                    state = 2
+        if debug_enabled():
+            print(controls)
+        return controls
+
+    def parse_GSI(self):
         controls = []
         step = 0
         mode = 0
@@ -105,33 +153,6 @@ class CabeanResult(object):
                 controls[-1].append(control)
         return controls
 
-    def parse_control3(self):
-        controls = {}
-        state = 0
-        for line in self.lines:
-            line = line.strip()
-            if line.startswith("==== START ATTRACTOR-BASED SEQUENTIAL INSTANTANEOUS CONTROL"):
-                state = 1
-            elif state == 1 and line.startswith("source and target"):
-                w = line.split()
-                a1, a2 = int(w[3])-1, int(w[5])-1
-                controls[(a1,a2)] = []
-            elif state == 1 and line.startswith("Sequence of the attractors"):
-                w = line.strip().split()
-                seq = [int(aid)-1 for aid in w[4:len(w):2]]
-                steps = []
-                state = 3
-            elif state == 3:
-                if not line:
-                    controls[(a1,a2)].append(list(zip(seq[:-1], steps)))
-                    state = 1
-                elif line.startswith("STEP "):
-                    continue
-                else:
-                    nodes = line.split()[2:]
-                    steps.append(set(nodes))
-        return controls
-
     def __str__(self):
         return "\n".join(self.lines)
 
@@ -142,6 +163,10 @@ class CabeanIface(object):
         self.init = init
         self.red = red
         self.pc = pc
+
+    def attractors(self):
+        result = self.execute("-compositional", "2")
+        return result.attractors
 
     def execute(self, *args, isplfile=None):
         args = ["cabean", "-asynbn", "-steadystates"] \
