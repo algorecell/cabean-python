@@ -66,10 +66,14 @@ class OneStepReprogramming(_CabeanAttractorReprogramming):
     """
     TODO
     """
-    def attractor_to_attractor(self, orig, dest):
+    def attractor_to_attractor(self, orig, dest, exclude=None):
         """
         TODO
         """
+        args = []
+        if exclude:
+            args += ["-rmPert",
+                    self.iface.make_exclude_perturbations(exclude)]
         aorigs = matching_attractors(self.attractors, orig)
         adests = matching_attractors(self.attractors, dest)
         strategies = ReprogrammingStrategies()
@@ -77,7 +81,8 @@ class OneStepReprogramming(_CabeanAttractorReprogramming):
         for a in aorigs:
             for b in adests:
                 result = self.iface.execute("-compositional", "2",
-                        "-control", "OI", "-sin", str(a+1), "-tin", str(b+1))
+                        "-control", "OI", "-sin", str(a+1), "-tin", str(b+1),
+                        *args)
                 if not self.check_attractors_integrity(result, a, b):
                     return self.attractor_to_attractor(orig, dest)
                 controls = result.parse_OI()
@@ -90,10 +95,14 @@ class AttractorSequentialReprogramming(_CabeanAttractorReprogramming):
     """
     TODO
     """
-    def attractor_to_attractor(self, orig, dest):
+    def attractor_to_attractor(self, orig, dest, exclude=None):
         """
         TODO
         """
+        args = []
+        if exclude:
+            args += ["-rmPert",
+                    self.iface.make_exclude_perturbations(exclude)]
         aorigs = matching_attractors(self.attractors, orig)
         adests = matching_attractors(self.attractors, dest)
         strategies = ReprogrammingStrategies()
@@ -101,7 +110,8 @@ class AttractorSequentialReprogramming(_CabeanAttractorReprogramming):
         for a in aorigs:
             for b in adests:
                 result = self.iface.execute("-compositional", "2",
-                        "-control", "ASI", "-sin", str(a+1), "-tin", str(b+1))
+                        "-control", "ASI", "-sin", str(a+1), "-tin", str(b+1),
+                        *args)
                 if not self.check_attractors_integrity(result, a, b):
                     return self.attractor_to_attractor(orig, dest)
                 controls = result.parse_ASI()

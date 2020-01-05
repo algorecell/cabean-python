@@ -3,6 +3,7 @@ import subprocess
 import tempfile
 
 from colomoto.types import *
+from colomoto_jupyter.sessionfiles import new_output_file
 
 from cabean.debug import debug_enabled
 
@@ -167,6 +168,29 @@ class CabeanIface(object):
     def attractors(self):
         result = self.execute("-compositional", "2")
         return result.attractors
+
+    def make_exclude_perturbations(self, exclude):
+        """
+        TODO
+        """
+        excfile = new_output_file(suffix="_rmPert.txt", prefix="cabean")
+        x = {"R0": [], "R1": [], "R": []}
+        for spec in exclude:
+            m = "R"
+            n = spec
+            if spec.endswith("+"):
+                n = spec.strip("+")
+                m = "R0"
+            elif spec.endswith("-"):
+                n = spec.strip("-")
+                m = "R1"
+            assert n in self.bn, "Unknown node '{}'".format(n)
+            x[m].append(n)
+        with open(excfile, "w") as fp:
+            fp.write("R0: {}\n".format(" ".join(x["R0"])))
+            fp.write("R1: {}\n".format(" ".join(x["R1"])))
+            fp.write("R: {}\n".format(" ".join(x["R"])))
+        return excfile
 
     def execute(self, *args, isplfile=None):
         args = ["cabean", "-asynbn", "-steadystates"] \
