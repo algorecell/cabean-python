@@ -2,6 +2,7 @@
 __version__ = "0.1"
 
 import itertools
+from warnings import warn
 
 from colomoto.minibn import BooleanNetwork
 
@@ -51,6 +52,15 @@ class _CabeanAttractorReprogramming(_CabeanReprogramming):
         self.iface = CabeanIface(bn, init=inputs)
         self.attractors = self.iface.attractors()
 
+    def check_attractors_integrity(self, result, *indexes):
+        if not indexes:
+            indexes = self.attractors.keys()
+        for i in indexes:
+            if self.attractors[i] != result.attractors[i]:
+                warn("CABEAN: unstable indexes of attractors... trying again...")
+                self.attractors = result.attractors
+                return False
+        return True
 
 class OneStepReprogramming(_CabeanAttractorReprogramming):
     """
@@ -68,6 +78,8 @@ class OneStepReprogramming(_CabeanAttractorReprogramming):
             for b in adests:
                 result = self.iface.execute("-compositional", "2",
                         "-control", "OI", "-sin", str(a+1), "-tin", str(b+1))
+                if not self.check_attractors_integrity(result, a, b):
+                    return self.attractor_to_attractor(orig, dest)
                 controls = result.parse_OI()
                 for sol in controls.get((a,b),[]):
                     s = self.strategy_step(a, sol)
@@ -90,6 +102,8 @@ class AttractorSequentialReprogramming(_CabeanAttractorReprogramming):
             for b in adests:
                 result = self.iface.execute("-compositional", "2",
                         "-control", "ASI", "-sin", str(a+1), "-tin", str(b+1))
+                if not self.check_attractors_integrity(result, a, b):
+                    return self.attractor_to_attractor(orig, dest)
                 controls = result.parse_ASI()
                 for sol in controls.get((a,b),[]):
                     s = None
