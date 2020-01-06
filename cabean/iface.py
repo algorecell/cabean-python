@@ -187,9 +187,9 @@ class CabeanIface(object):
             assert n in self.bn, "Unknown node '{}'".format(n)
             x[m].append(n)
         with open(excfile, "w") as fp:
-            fp.write("R0: {}\n".format(" ".join(x["R0"])))
-            fp.write("R1: {}\n".format(" ".join(x["R1"])))
-            fp.write("R: {}\n".format(" ".join(x["R"])))
+            fp.write("R0: {}\n".format(",".join(x["R0"])))
+            fp.write("R1: {}\n".format(",".join(x["R1"])))
+            fp.write("R: {}\n".format(",".join(x["R"])))
         return excfile
 
     def execute(self, *args, isplfile=None):
