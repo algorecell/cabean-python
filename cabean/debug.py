@@ -7,7 +7,7 @@ def enable_debug():
 
 def disable_debug():
     global __enabled
-    __enabled = True
+    __enabled = False
 
 def debug_enabled():
     return __enabled
