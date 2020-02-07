@@ -107,10 +107,8 @@ class CabeanResult(object):
                 seq = [int(aid)-1 for aid in w[4:len(w):2]]
                 steps = []
                 state = 2
-            elif state == 2 and not line:
+            elif state == 2 and (not line or line.startswith("execution time")):
                 controls[(a1,a2)].append(list(zip(seq[:-1], steps)))
-                state = 1
-            elif state == 2 and line.startswith("execution time"):
                 state = 1
             elif state == 2 and line.startswith("control set:"):
                 state = 3
