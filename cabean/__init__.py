@@ -128,6 +128,8 @@ class SequentialReprogramming(_CabeanReprogramming):
     def attractor_to_attractor(self, orig, dest, maxsteps=5, limit=200):
         if limit == 1:
             l = "1"
+        elif limit <= 200:
+            l = "0"
         else:
             l = "2"
 
@@ -146,6 +148,9 @@ class SequentialReprogramming(_CabeanReprogramming):
         iface = CabeanIface(self.bn, pc=maxsteps, init=orig, red=dest)
         result = iface.execute("-control", "GSI", "-path", l)
         controls = result.parse_GSI()
+        if not controls:
+            return strategies
+        i = 0
         for steps in itertools.product(*controls):
             s = None
             for step in reversed(steps):
@@ -154,6 +159,9 @@ class SequentialReprogramming(_CabeanReprogramming):
                 sa = state_alias(step["from"])
                 s = FromState(sa, p, *((s,) if s is not None else ()))
             strategies.add(s)
+            i += 1
+            if i == limit:
+                break
         return strategies
 
 def attractors(bn, *spec, **kwspec):
