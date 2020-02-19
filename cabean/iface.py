@@ -59,11 +59,11 @@ class CabeanResult(object):
                         attractors[num] = attractors[num].extend(state)
         return attractors
 
-    def parse_OI(self):
+    def parse_onestep(self, mode):
         controls = {}
         state = 0
         for line in self.lines:
-            if line.startswith("====== ONE-STEP INSTANTANEOUS"):
+            if line.startswith(f"====== ONE-STEP {mode.upper()}"):
                 state = 1
             elif state == 1 and line.startswith("source -"):
                 w = line.split()
@@ -91,12 +91,12 @@ class CabeanResult(object):
             print(controls)
         return controls
 
-    def parse_ASI(self):
+    def parse_attractor_sequential(self, mode):
         controls = {}
         state = 0
         for line in self.lines:
             line = line.strip()
-            if line.startswith("========= ATTRACTOR-BASED SEQUENTIAL INSTANTANEOUS "):
+            if line.startswith(f"========= ATTRACTOR-BASED SEQUENTIAL {mode.upper()} "):
                 state = 1
             elif state == 1 and line.startswith("source -"):
                 w = line.split()
@@ -127,6 +127,20 @@ class CabeanResult(object):
         if debug_enabled():
             print(controls)
         return controls
+
+    def parse_OI(self):
+        return self.parse_onestep("instanteanous")
+    def parse_OT(self):
+        return self.parse_onestep("temporary")
+    def parse_OP(self):
+        return self.parse_onestep("permanent")
+
+    def parse_ASI(self):
+        return self.parse_attractor_sequential("instanteanous")
+    def parse_AST(self):
+        return self.parse_attractor_sequential("temporary")
+    def parse_ASP(self):
+        return self.parse_attractor_sequential("permanent")
 
     def parse_GSI(self):
         controls = []
