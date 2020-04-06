@@ -62,7 +62,7 @@ class _CabeanAttractorReprogramming(_CabeanReprogramming):
                 return False
         return True
 
-class OneStepReprogramming(_CabeanAttractorReprogramming):
+class OneStepReprogramming_Instantaneous(_CabeanAttractorReprogramming):
     """
     TODO
     """
@@ -91,7 +91,7 @@ class OneStepReprogramming(_CabeanAttractorReprogramming):
                     strategies.add(s, result=alias(b))
         return strategies
 
-class AttractorSequentialReprogramming(_CabeanAttractorReprogramming):
+class AttractorSequentialReprogramming_Instantaneous(_CabeanAttractorReprogramming):
     """
     TODO
     """
@@ -124,7 +124,7 @@ class AttractorSequentialReprogramming(_CabeanAttractorReprogramming):
         self.register_aliases(strategies, used_attractors)
         return strategies
 
-class SequentialReprogramming(_CabeanReprogramming):
+class SequentialReprogramming_Instantaneous(_CabeanReprogramming):
     def attractor_to_attractor(self, orig, dest, maxsteps=5, limit=200):
         if limit == 1:
             l = "1"
