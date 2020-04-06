@@ -3,6 +3,7 @@ __version__ = "0.1"
 
 import itertools
 from warnings import warn
+import sys
 
 from colomoto.minibn import BooleanNetwork
 
@@ -18,9 +19,7 @@ def alias(a):
 
 class _CabeanReprogramming(object):
     def __init__(self, bn):
-        if not isinstance(bn, BooleanNetwork):
-            raise TypeError("argument must be a minibn.BooleanNetwork object")
-        self.bn = bn
+        self.bn = BooleanNetwork.auto_cast(bn)
 
     def register_aliases(self, strategies, attractor_ids):
         for a in attractor_ids:
@@ -47,9 +46,10 @@ class _CabeanAttractorReprogramming(_CabeanReprogramming):
         """
         TODO
         """
-        assert not inputs or set(bn.inputs()).issuperset(inputs.keys()),\
+        super().__init__(bn)
+        assert not inputs or set(self.bn.inputs()).issuperset(inputs.keys()),\
                 "specified inputs are not input nodes of the Boolean network"
-        self.iface = CabeanIface(bn, init=inputs)
+        self.iface = CabeanIface(self.bn, init=inputs)
         self.attractors = self.iface.attractors()
 
     def check_attractors_integrity(self, result, *indexes):
