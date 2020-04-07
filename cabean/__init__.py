@@ -62,7 +62,7 @@ class _CabeanAttractorReprogramming(_CabeanReprogramming):
                 return False
         return True
 
-class OneStepReprogramming_Instantaneous(_CabeanAttractorReprogramming):
+class OneStep_Instantaneous(_CabeanAttractorReprogramming):
     """
     TODO
     """
@@ -91,7 +91,7 @@ class OneStepReprogramming_Instantaneous(_CabeanAttractorReprogramming):
                     strategies.add(s, result=alias(b))
         return strategies
 
-class AttractorSequentialReprogramming_Instantaneous(_CabeanAttractorReprogramming):
+class AttractorSequential_Instantaneous(_CabeanAttractorReprogramming):
     """
     TODO
     """
@@ -124,7 +124,7 @@ class AttractorSequentialReprogramming_Instantaneous(_CabeanAttractorReprogrammi
         self.register_aliases(strategies, used_attractors)
         return strategies
 
-class SequentialReprogramming_Instantaneous(_CabeanReprogramming):
+class Sequential_Instantaneous(_CabeanReprogramming):
     def attractor_to_attractor(self, orig, dest, maxsteps=5, limit=200):
         if limit == 1:
             l = "1"
@@ -168,6 +168,7 @@ def attractors(bn, *spec, **kwspec):
     """
     TODO
     """
+    bn = BooleanNetwork.auto_cast(bn)
     init = PartialState(*spec, **kwspec)
     assert set(bn.inputs()).issuperset(init.keys()),\
             "specified inputs are not input nodes of the Boolean network"
