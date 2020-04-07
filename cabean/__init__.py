@@ -12,7 +12,7 @@ from algorecell_types import *
 
 from .iface import CabeanIface
 
-from .debug import enable_debug, disable_debug
+from .debug import *
 
 def alias(a):
     return "a{}".format(a)
@@ -53,13 +53,15 @@ class _CabeanAttractorReprogramming(_CabeanReprogramming):
         self.attractors = self.iface.attractors()
 
     def check_attractors_integrity(self, result, *indexes):
-        if not indexes:
-            indexes = self.attractors.keys()
-        for i in indexes:
-            if self.attractors[i] != result.attractors[i]:
-                warn("CABEAN: unstable indexes of attractors... trying again...")
-                self.attractors = result.attractors
-                return False
+        if debug_enabled():
+            if not indexes:
+                indexes = self.attractors.keys()
+            for i in indexes:
+                if self.attractors[i] != result.attractors[i]:
+                    warn("CABEAN: unstable indexes of attractors... trying again...")
+                    self.attractors = result.attractors
+                    return False
+            return True
         return True
 
 class OneStep_Instantaneous(_CabeanAttractorReprogramming):
