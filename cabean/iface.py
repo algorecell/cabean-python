@@ -63,7 +63,7 @@ class CabeanResult(object):
         controls = {}
         state = 0
         for line in self.lines:
-            if line.startswith(f"====== ONE-STEP {mode.upper()}"):
+            if f"= ONE-STEP {mode.upper()}" in line:
                 state = 1
             elif state == 1 and line.startswith("source -"):
                 w = line.split()
@@ -110,7 +110,7 @@ class CabeanResult(object):
             elif state == 2 and (not line or line.startswith("execution time")):
                 controls[(a1,a2)].append(list(zip(seq[:-1], steps)))
                 state = 1
-            elif state == 2 and line.startswith("control set:"):
+            elif state == 2 and line.lower().startswith("control set"):
                 state = 3
                 p = {}
                 steps.append(p)
@@ -129,14 +129,14 @@ class CabeanResult(object):
         return controls
 
     def parse_OI(self):
-        return self.parse_onestep("instanteanous")
+        return self.parse_onestep("instantaneous")
     def parse_OT(self):
         return self.parse_onestep("temporary")
     def parse_OP(self):
         return self.parse_onestep("permanent")
 
     def parse_ASI(self):
-        return self.parse_attractor_sequential("instanteanous")
+        return self.parse_attractor_sequential("instantaneous")
     def parse_AST(self):
         return self.parse_attractor_sequential("temporary")
     def parse_ASP(self):

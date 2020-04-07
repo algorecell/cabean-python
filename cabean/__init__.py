@@ -95,7 +95,7 @@ class AttractorSequential_Instantaneous(_CabeanAttractorReprogramming):
     """
     TODO
     """
-    def attractor_to_attractor(self, orig, dest, exclude=None):
+    def attractor_to_attractor(self, orig, dest, exclude=None, maxpert=None):
         """
         TODO
         """
@@ -103,6 +103,8 @@ class AttractorSequential_Instantaneous(_CabeanAttractorReprogramming):
         if exclude:
             args += ["-rmPert",
                     self.iface.make_exclude_perturbations(exclude)]
+        if maxpert:
+            args += ["-maxpert", str(maxpert)]
         aorigs = matching_attractors(self.attractors, orig)
         adests = matching_attractors(self.attractors, dest)
         strategies = ReprogrammingStrategies()
@@ -125,11 +127,9 @@ class AttractorSequential_Instantaneous(_CabeanAttractorReprogramming):
         return strategies
 
 class Sequential_Instantaneous(_CabeanReprogramming):
-    def attractor_to_attractor(self, orig, dest, maxsteps=5, limit=200):
+    def attractor_to_attractor(self, orig, dest, maxsteps=5, limit=1):
         if limit == 1:
             l = "1"
-        elif limit <= 200:
-            l = "0"
         else:
             l = "2"
 
