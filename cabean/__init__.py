@@ -17,6 +17,12 @@ from .debug import *
 def alias(a):
     return "a{}".format(a)
 
+_PTYPE = {
+    "I": InstantaneousPerturbation,
+    "T": TemporaryPerturbation,
+    "P": PermanentPerturbation,
+}
+
 class _CabeanReprogramming(object):
     def __init__(self, bn):
         self.bn = BooleanNetwork.auto_cast(bn)
@@ -27,19 +33,13 @@ class _CabeanReprogramming(object):
 
     def strategy_step(self, a, m, next_step=None):
         orig = self.attractors[a]
-        #m = assignments_from_flips(orig, flips)
-        p = InstantaneousPerturbation(m)
+        p = _PTYPE[self.method[-1]](m)
         t = FromSteadyState if orig.is_single_state else FromOneInLimitCycle
         return t(alias(a), p, *((next_step,) if next_step is not None else ()))
 
 
 def matching_attractors(attractors, pstate):
     return [i for i,a in attractors.items() if a.match_partial_state(pstate)]
-
-def assignments_from_flips(orig, nodes):
-    orig_state = orig.project(nodes)
-    return dict([(k,((1-v) if v in [0,1] else "-{}".format(k))) \
-            for (k,v) in orig_state.items()])
 
 class _CabeanAttractorReprogramming(_CabeanReprogramming):
     def __init__(self, bn, inputs=None):
@@ -64,10 +64,7 @@ class _CabeanAttractorReprogramming(_CabeanReprogramming):
             return True
         return True
 
-class OneStep_Instantaneous(_CabeanAttractorReprogramming):
-    """
-    TODO
-    """
+class _OneStep(_CabeanAttractorReprogramming):
     def attractor_to_attractor(self, orig, dest, exclude=None):
         """
         TODO
@@ -83,17 +80,24 @@ class OneStep_Instantaneous(_CabeanAttractorReprogramming):
         for a in aorigs:
             for b in adests:
                 result = self.iface.execute("-compositional", "2",
-                        "-control", "OI", "-sin", str(a+1), "-tin", str(b+1),
+                        "-control", self.method, "-sin", str(a+1), "-tin", str(b+1),
                         *args)
                 if not self.check_attractors_integrity(result, a, b):
                     return self.attractor_to_attractor(orig, dest)
-                controls = result.parse_OI()
+                controls = getattr(result, f"parse_{self.method}")()
                 for sol in controls.get((a,b),[]):
                     s = self.strategy_step(a, sol)
                     strategies.add(s, result=alias(b))
         return strategies
 
-class AttractorSequential_Instantaneous(_CabeanAttractorReprogramming):
+class OneStep_Instantaneous(_OneStep):
+    method = "OI"
+class OneStep_Temporary(_OneStep):
+    method = "OT"
+class OneStep_Permanent(_OneStep):
+    method = "OP"
+
+class _AttractorSequential(_CabeanAttractorReprogramming):
     """
     TODO
     """
@@ -114,11 +118,11 @@ class AttractorSequential_Instantaneous(_CabeanAttractorReprogramming):
         for a in aorigs:
             for b in adests:
                 result = self.iface.execute("-compositional", "2",
-                        "-control", "ASI", "-sin", str(a+1), "-tin", str(b+1),
+                        "-control", self.method, "-sin", str(a+1), "-tin", str(b+1),
                         *args)
                 if not self.check_attractors_integrity(result, a, b):
                     return self.attractor_to_attractor(orig, dest)
-                controls = result.parse_ASI()
+                controls = getattr(result, f"parse_{self.method}")()
                 for sol in controls.get((a,b),[]):
                     s = None
                     for (c, m) in reversed(sol):
@@ -128,7 +132,15 @@ class AttractorSequential_Instantaneous(_CabeanAttractorReprogramming):
         self.register_aliases(strategies, used_attractors)
         return strategies
 
+class AttractorSequential_Instantaneous(_AttractorSequential):
+    method = "ASI"
+class AttractorSequential_Temporary(_AttractorSequential):
+    method = "AST"
+class AttractorSequential_Permanent(_AttractorSequential):
+    method = "ASP"
+
 class Sequential_Instantaneous(_CabeanReprogramming):
+    method ="GSI"
     def attractor_to_attractor(self, orig, dest, maxsteps=5, limit=1):
         if limit == 1:
             l = "1"
@@ -177,7 +189,3 @@ def attractors(bn, *spec, **kwspec):
     iface = CabeanIface(bn, init=init)
     return list(iface.attractors().values())
 
-__all__ = ["attractors",
-        "OneStepReprogramming",
-        "SequentialReprogramming",
-        "AttractorSequentialReprogramming"]

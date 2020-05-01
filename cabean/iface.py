@@ -7,7 +7,7 @@ from colomoto_jupyter.sessionfiles import new_output_file
 
 from cabean.debug import debug_enabled
 
-cabean_base_options = ["-newtarjan", "-newpred"]
+cabean_base_options = []
 
 class CabeanProcessError(subprocess.CalledProcessError):
     """
@@ -63,6 +63,7 @@ class CabeanResult(object):
         controls = {}
         state = 0
         for line in self.lines:
+            line = line.strip()
             if f"= ONE-STEP {mode.upper()}" in line:
                 state = 1
             elif state == 1 and line.startswith("source -"):
@@ -70,26 +71,22 @@ class CabeanResult(object):
                 a1, a2 = int(w[2])-1, int(w[5])-1
                 controls[(a1,a2)] = []
                 state = 2
-            elif state == 2 and line.startswith("control set:"):
-                state = 3
-                p = {}
+            elif state == 2 and line.lower().startswith("control set:"):
+                line = line[12:]
+                p = self.parse_controlset(line)
                 controls[(a1,a2)].append(p)
             elif state == 2 and line.startswith("execution time"):
                 state = 1
-            elif state == 3:
-                line = line.strip()
-                if line.startswith("nodes - ON"):
-                    nodes = line.split(":")[1].strip().split()
-                    for n in nodes:
-                        p[n] = 1
-                elif line.startswith("nodes - OFF"):
-                    nodes = line.split(":")[1].strip().split()
-                    for n in nodes:
-                        p[n] = 0
-                    state = 2
         if debug_enabled():
             print(controls)
         return controls
+
+    def parse_controlset(self, data):
+        p = {}
+        for c in data.strip().split():
+            node, value = c.split("=")
+            p[node] = int(value)
+        return p
 
     def parse_attractor_sequential(self, mode):
         controls = {}
@@ -111,19 +108,9 @@ class CabeanResult(object):
                 controls[(a1,a2)].append(list(zip(seq[:-1], steps)))
                 state = 1
             elif state == 2 and line.lower().startswith("control set"):
-                state = 3
-                p = {}
+                line = ":".join(line.split(":")[1:])
+                p = self.parse_controlset(line)
                 steps.append(p)
-            elif state == 3:
-                if line.startswith("nodes - ON"):
-                    nodes = line.split(":")[1].strip().split()
-                    for n in nodes:
-                        p[n] = 1
-                elif line.startswith("nodes - OFF"):
-                    nodes = line.split(":")[1].strip().split()
-                    for n in nodes:
-                        p[n] = 0
-                    state = 2
         if debug_enabled():
             print(controls)
         return controls
@@ -205,7 +192,7 @@ class CabeanIface(object):
         return excfile
 
     def execute(self, *args, isplfile=None):
-        args = ["cabean", "-asynbn", "-steadystates"] \
+        args = ["cabean", "-asynbn", "-steadystates", "-newtarjan", "-newpred"] \
                 + cabean_base_options + list(args)
         if self.pc:
             args += ["-pc", str(self.pc)]
