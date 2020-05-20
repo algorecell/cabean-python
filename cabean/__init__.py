@@ -23,6 +23,11 @@ _PTYPE = {
     "P": PermanentPerturbation,
 }
 
+def assignments_from_flips(orig, nodes):
+    orig_state = orig.project(nodes)
+    return dict([(k,((1-v) if v in [0,1] else "-{}".format(k))) \
+            for (k,v) in orig_state.items()])
+
 class _CabeanReprogramming(object):
     def __init__(self, bn):
         self.bn = BooleanNetwork.auto_cast(bn)
