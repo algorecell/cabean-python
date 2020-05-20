@@ -1,3 +1,4 @@
+import itertools
 import os
 import subprocess
 import tempfile
@@ -105,12 +106,16 @@ class CabeanResult(object):
                 steps = []
                 state = 2
             elif state == 2 and (not line or line.startswith("execution time")):
-                controls[(a1,a2)].append(list(zip(seq[:-1], steps)))
+                for path in itertools.product(*steps):
+                    controls[(a1,a2)].append(list(zip(seq[:-1], path)))
                 state = 1
+            elif state == 2 and line.lower().startswith("step"):
+                step = []
+                steps.append(step)
             elif state == 2 and line.lower().startswith("control set"):
                 line = ":".join(line.split(":")[1:])
                 p = self.parse_controlset(line)
-                steps.append(p)
+                step.append(p)
         if debug_enabled():
             print(controls)
         return controls
