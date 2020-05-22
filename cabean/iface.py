@@ -34,7 +34,7 @@ class CabeanResult(object):
 
     def parse_state(self, spec):
         spec = spec[0:len(spec):2]
-        spec = zip(sorted(self.iface.bn.keys()), spec)
+        spec = zip(self.iface.ordered_nodes, spec)
         return PartialState([(x,int(v) if v != "-" else "*") for x,v in spec])
 
     def parse_attractors(self):
@@ -168,6 +168,7 @@ class CabeanIface(object):
         self.init = init
         self.red = red
         self.pc = pc
+        self.ordered_nodes = list(sorted(self.bn.keys()))
 
     def attractors(self):
         result = self.execute("-compositional", "2")
@@ -223,7 +224,7 @@ class CabeanIface(object):
 
     def write_ispl(self, fp):
         fp.write("Agent M\n\tVars:\n")
-        for x in sorted(self.bn.keys()):
+        for x in self.ordered_nodes:
             fp.write("\t\t{}: boolean;\n".format(x))
         if self.pc:
             fp.write("\t\tpc: 0..{};\n".format(self.pc))
@@ -234,7 +235,8 @@ class CabeanIface(object):
         fp.write("\tActions = {none};\n")
         fp.write("\tProtocol:\n\t\tOther: {none};\n\tend Protocol\n")
         fp.write("\tEvolution:\n")
-        for x, f in sorted(self.bn.items()):
+        for x in self.ordered_nodes:
+            f = self.bn[x]
             if f is self.bn.ba.TRUE:
                 fp.write("\t\t{0}=true if {0}=true or {0}=false;\n".format(x))
             elif f is self.bn.ba.FALSE:
@@ -244,7 +246,7 @@ class CabeanIface(object):
                 fp.write("\t\t{}=true if ({})=true;\n".format(x, f))
                 fp.write("\t\t{}=false if ({})=false;\n".format(x, f))
         if self.pc:
-            for x in sorted(self.bn):
+            for x in self.ordered_nodes:
                 d = {"x": x, "pc": self.pc}
                 fp.write("\t\t{x}=true and pc=pc+1 \
                         if pc<{pc} and {x}=false;\n".format(**d))
@@ -255,7 +257,7 @@ class CabeanIface(object):
             d = ispl_state(self.init, prefix="M.")
             fp.write("InitStates\n\t{}\nend InitStates\n".format(d))
         else:
-            x = list(self.bn.keys())[0]
+            x = self.ordered_nodes[0]
             fp.write("InitStates\n\tM.{0}=true or M.{0}=false;\n\
                         end InitStates\n".format(x))
 
