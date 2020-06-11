@@ -164,6 +164,13 @@ class CabeanResult(object):
 
 class CabeanIface(object):
     def __init__(self, bn, init=None, red=None, pc=0):
+        constants = bn.constants()
+        if constants:
+            init = init if init is not None else {}
+            bn = bn.copy()
+            for n, f in constants.items():
+                bn[n] = n
+                init[n] = bool(f)
         self.bn = bn
         self.init = init
         self.red = red
