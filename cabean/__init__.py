@@ -14,6 +14,25 @@ from .iface import CabeanIface
 
 from .debug import *
 
+class CabeanInstance(object):
+    def __init__(self, bn, *spec, **kwspec):
+        bn = BooleanNetwork.auto_cast(bn)
+        init = PartialState(*spec, **kwspec)
+        assert set(bn.inputs()).issuperset(init.keys()),\
+                "specified inputs are not input nodes of the Boolean network"
+        self.iface = CabeanIface(bn, init=init)
+        self.attractors = self.iface.attractors()
+
+def load(bn, *spec, **kwspec):
+    return CabeanInstance(bn, *spec, **kwspec)
+
+def _cabean_instance(model, *spec, **kwspec):
+    if not isinstance(model, CabeanInstance):
+        return CabeanInstance(model, *spec, **kwspec)
+    if spec or kwspec:
+        raise TypeError("wrong arguments")
+    return model
+
 def alias(a):
     return "a{}".format(a)
 
@@ -29,8 +48,6 @@ def assignments_from_flips(orig, nodes):
             for (k,v) in orig_state.items()])
 
 class _CabeanReprogramming(object):
-    def __init__(self, bn):
-        self.bn = BooleanNetwork.auto_cast(bn)
 
     def register_aliases(self, strategies, attractor_ids):
         for a in attractor_ids:
@@ -51,11 +68,9 @@ class _CabeanAttractorReprogramming(_CabeanReprogramming):
         """
         TODO
         """
-        super().__init__(bn)
-        assert not inputs or set(self.bn.inputs()).issuperset(inputs.keys()),\
-                "specified inputs are not input nodes of the Boolean network"
-        self.iface = CabeanIface(self.bn, init=inputs)
-        self.attractors = self.iface.attractors()
+        self.ci = _cabean_instance(bn, inputs) if inputs else _cabean_instance(bn)
+        self.iface = self.ci.iface
+        self.attractors = self.ci.attractors
 
     def check_attractors_integrity(self, result, *indexes):
         if debug_enabled():
@@ -146,6 +161,13 @@ class AttractorSequential_Permanent(_AttractorSequential):
 
 class Sequential_Instantaneous(_CabeanReprogramming):
     method ="GSI"
+    def __init__(self, bn):
+        if isinstance(bn, CabeanInstance):
+            bn = bn.bn
+        else:
+            bn = BooleanNetwork.auto_cast(bn)
+        self.bn = bn
+
     def attractor_to_attractor(self, orig, dest, maxsteps=5, limit=1):
         if limit == 1:
             l = "1"
@@ -183,14 +205,10 @@ class Sequential_Instantaneous(_CabeanReprogramming):
                 break
         return strategies
 
-def attractors(bn, *spec, **kwspec):
+def attractors(model, *spec, **kwspec):
     """
     TODO
     """
-    bn = BooleanNetwork.auto_cast(bn)
-    init = PartialState(*spec, **kwspec)
-    assert set(bn.inputs()).issuperset(init.keys()),\
-            "specified inputs are not input nodes of the Boolean network"
-    iface = CabeanIface(bn, init=init)
-    return list(iface.attractors().values())
+    ci = _cabean_instance(model, *spec, **kwspec)
+    return list(ci.attractors.values())
 
