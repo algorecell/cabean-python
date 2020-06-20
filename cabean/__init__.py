@@ -1,6 +1,4 @@
 
-__version__ = "0.1"
-
 import itertools
 from warnings import warn
 import sys

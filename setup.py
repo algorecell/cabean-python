@@ -1,22 +1,14 @@
 
-import os
-import re
 from setuptools import setup, find_packages
 
 NAME = 'cabean'
 
-META = {}
-META_FILE = os.path.join(NAME, "__init__.py")
-with open(META_FILE) as f:
-    __data = f.read()
-for key in ["version"]:
-    match = re.search(r"^__{0}__ = ['\"]([^'\"]*)['\"]".format(key), __data, re.M)
-    if not match:
-        raise RuntimeError("Unable to find __{meta}__ string.".format(meta=key))
-    META[key] = match.group(1)
-
 setup(name=NAME,
-    description = "Python interface to Cabean",
+    version='9999',
+    author = "Loïc Paulevé",
+    author_email = "loic.pauleve@labri.fr",
+    url = "https://github.com/algorecell/pyCabean",
+    description = "Python interface to CABEAN, A Software Tool for the Control of Asynchronous Boolean Networks",
     install_requires = [
         "colomoto_jupyter",
         "algorecell_types",
@@ -29,7 +21,6 @@ setup(name=NAME,
 
     include_package_data = True,
     packages = find_packages(),
-    py_modules = ["cabean_setup"],
-    **META
+    py_modules = ["cabean_setup"]
 )
 
