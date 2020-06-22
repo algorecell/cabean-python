@@ -1,4 +1,4 @@
-{% set name = "pycabean" %}
+{% set name = "cabean-python" %}
 {% set version = "9999" %}
 
 package:
@@ -25,7 +25,7 @@ requirements:
     - cabean
 
 about:
-  home: https://github.com/algorecell/pyCabean
+  home: https://github.com/algorecell/cabean-python
   summary: 'Python interface to CABEAN, A Software Tool for the Control of Asynchronous Boolean Networks'
   license_family: LGPL
   license: LGPL v3+/CeCILL-C
