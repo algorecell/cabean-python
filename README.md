@@ -31,4 +31,4 @@ python -m cabean_setup
 Documentation is available at https://cabean-python.readthedocs.io.
 
 Examples can be found at:
-* https://nbviewer.jupyter.org/github/algorecell/cabean-python/tree/master/examples/
+* https://nbviewer.jupyter.org/github/algorecell/cabean-python/tree/main/examples/
