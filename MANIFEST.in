@@ -1,4 +1,5 @@
 prune .github
 prune conda
-exclude .gitignore
+prune docs
 prune examples
+exclude .gitignore

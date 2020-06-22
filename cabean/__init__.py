@@ -1,3 +1,6 @@
+"""
+TODO
+"""
 
 import itertools
 from warnings import warn
@@ -12,7 +15,18 @@ from .iface import CabeanIface
 
 from .debug import *
 
+def load(bn, *spec, **kwspec):
+    """
+    TODO
+
+    :rtype: :py:class:`.CabeanInstance`
+    """
+    return CabeanInstance(bn, *spec, **kwspec)
+
 class CabeanInstance(object):
+    """
+    TODO
+    """
     def __init__(self, bn, *spec, **kwspec):
         bn = BooleanNetwork.auto_cast(bn)
         init = PartialState(*spec, **kwspec)
@@ -20,9 +34,6 @@ class CabeanInstance(object):
                 "specified inputs are not input nodes of the Boolean network"
         self.iface = CabeanIface(bn, init=init)
         self.attractors = self.iface.attractors()
-
-def load(bn, *spec, **kwspec):
-    return CabeanInstance(bn, *spec, **kwspec)
 
 def _cabean_instance(model, *spec, **kwspec):
     if not isinstance(model, CabeanInstance):
@@ -63,9 +74,6 @@ def matching_attractors(attractors, pstate):
 
 class _CabeanAttractorReprogramming(_CabeanReprogramming):
     def __init__(self, bn, inputs=None):
-        """
-        TODO
-        """
         self.ci = _cabean_instance(bn, inputs) if inputs else _cabean_instance(bn)
         self.iface = self.ci.iface
         self.attractors = self.ci.attractors
@@ -109,10 +117,19 @@ class _OneStep(_CabeanAttractorReprogramming):
         return strategies
 
 class OneStep_Instantaneous(_OneStep):
+    """
+    TODO
+    """
     method = "OI"
 class OneStep_Temporary(_OneStep):
+    """
+    TODO
+    """
     method = "OT"
 class OneStep_Permanent(_OneStep):
+    """
+    TODO
+    """
     method = "OP"
 
 class _AttractorSequential(_CabeanAttractorReprogramming):
@@ -151,13 +168,25 @@ class _AttractorSequential(_CabeanAttractorReprogramming):
         return strategies
 
 class AttractorSequential_Instantaneous(_AttractorSequential):
+    """
+    TODO
+    """
     method = "ASI"
 class AttractorSequential_Temporary(_AttractorSequential):
+    """
+    TODO
+    """
     method = "AST"
 class AttractorSequential_Permanent(_AttractorSequential):
+    """
+    TODO
+    """
     method = "ASP"
 
 class Sequential_Instantaneous(_CabeanReprogramming):
+    """
+    TODO
+    """
     method ="GSI"
     def __init__(self, bn):
         if isinstance(bn, CabeanInstance):
@@ -167,6 +196,9 @@ class Sequential_Instantaneous(_CabeanReprogramming):
         self.bn = bn
 
     def attractor_to_attractor(self, orig, dest, maxsteps=5, limit=1):
+        """
+        TODO
+        """
         if limit == 1:
             l = "1"
         else:
