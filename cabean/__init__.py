@@ -353,7 +353,7 @@ def attractors(model, *spec, **kwspec):
     names to ``0``, ``1``, or ``*`` (cyclic); or as a
     ``colomoto.types.TrapSpacesAttractor``, i.e., a list of the former type.
 
-    Arguments are the same as :py:class:`.CabeanInstance`.
+    :param model: either a `.CabeanInstance` object, or arguments are the same as :py:class:`.CabeanInstance`.
     """
     ci = _cabean_instance(model, *spec, **kwspec)
     return list(ci.attractors.values())
