@@ -1,5 +1,50 @@
 """
-TODO
+This Python module is an interface to the software tool CABEAN
+(https://satoss.uni.lu/software/CABEAN/) for the computation and source-target
+control of attractors of asynchronous Boolean networks, using symbolic encoding
+of state transition graph.
+
+The control predictions can be processed using the `algorecell_types
+<https://github.com/algorecell/algorecell_types>`_ library, which eases the
+display and comparison with other control methods.
+
+Installation instructions at https://github.com/algorecell/cabean-python.
+
+Examples can be found at:
+    - https://nbviewer.jupyter.org/github/algorecell/cabean-python/tree/main/examples/
+
+Quick usage:
+
+>>> import cabean
+
+Model loading:
+
+>>> cb = cabean.load("model.bnet") # in BoolNet format
+# alternatively, load with biolqm in any format
+>>> import biolqm
+>>> lm = biolqm.load("model.zginml") # or any format support by bioLQM
+>>> cb = cabean.load(lm)
+
+Attractors :
+
+>>> from colomoto_jupyter import tabulate
+>>> tabulate(cabean.attractors(cb))
+
+Reprogramming predictions:
+
+>>> source = {"A": 0, "B": 1} # any attractor matching
+>>> target = {"A": 1, "B", 0} # any attractor matching
+# one-step reprogramming with instantaneeous perturbations:
+>>> cb_inst = cabean.OneStep_Instantaneous(cb)
+>>> rs = cb_inst.attractor_to_attractor(source, target)
+>>> rs.as_table()
+# attractor-sequential reprogramming with temporary perturbations:
+>>> cb_seq_temp = cabean.AttractorSequential_Temporary(cb)
+>>> rs = cb_seq_temp.attractor_to_attractor(source, target)
+>>> rs.as_graph()
+
+See ``help(rs)`` for other display methods
+
 """
 
 import itertools
@@ -17,17 +62,30 @@ from .debug import *
 
 def load(bn, *spec, **kwspec):
     """
-    TODO
+    Returns :py:class:`.CabeanInstance` `(bn, *spec, **kwspec)`
 
-    :rtype: :py:class:`.CabeanInstance`
+    Example :
+
+    >>> cb = cabean.load(bn, {"I1": 1, "I2": 0})
     """
     return CabeanInstance(bn, *spec, **kwspec)
 
 class CabeanInstance(object):
     """
-    TODO
+    CABEAN Boolean network model, storing the list of its attractors
     """
     def __init__(self, bn, *spec, **kwspec):
+        """
+        :param bn: Boolean network in any format supported by
+            ``colomoto.minibn.BooleanNetwork``, which include filename in BoolNet
+            format, and ``biolqm`` or ``ginsim`` objects.
+
+        Other arguments can used to specify a fixed value for input nodes.
+
+        Example :
+
+        >>> cb = cabean.CabeanInstance(bn, {"I1": 1, "I2": 0})
+        """
         bn = BooleanNetwork.auto_cast(bn)
         init = PartialState(*spec, **kwspec)
         assert set(bn.inputs()).issuperset(init.keys()),\
@@ -91,9 +149,26 @@ class _CabeanAttractorReprogramming(_CabeanReprogramming):
         return True
 
 class _OneStep(_CabeanAttractorReprogramming):
+    """
+    One-step reprogramming strategies consist of a set of perturbations which,
+    when applied in the initial state are sufficient to ensure the reachability
+    of the target attractor.
+    """
     def attractor_to_attractor(self, orig, dest, exclude=None):
         """
-        TODO
+        Compute one-step reprogramming strategies for enforcing the reachability
+        of an attractor of the model matching with `dest` from an attractor matching with
+        `orig`.
+        The type of perturbations depends on the class from which this method is
+        called:
+
+        * :py:class:`.OneStep_Instantaneous`
+        * :py:class:`.OneStep_Temporary`
+        * :py:class:`.OneStep_Permanent`
+
+        :keyword list(str) exclude: list of nodes to exclude from perturbations.
+
+        :rtype: `algorecell_types.ReprogrammingStrategies <https://algorecell-types.readthedocs.io/#algorecell_types.ReprogrammingStrategies>`_
         """
         args = []
         if exclude:
@@ -118,27 +193,47 @@ class _OneStep(_CabeanAttractorReprogramming):
 
 class OneStep_Instantaneous(_OneStep):
     """
-    TODO
+    One-step reprogramming with instantaneous perturbations
     """
     method = "OI"
 class OneStep_Temporary(_OneStep):
     """
-    TODO
+    One-step reprogramming with temporary perturbations, i.e., to be released
+    once in an attractor
     """
     method = "OT"
 class OneStep_Permanent(_OneStep):
     """
-    TODO
+    One-step reprogramming with permanent perturbations. Note that CABEAN only
+    considers attractors of the "wild-type" Boolean networks: permanent
+    reprogramming strategies correspond to the cases whenever temporary
+    perturbations can be sustained forever.
     """
     method = "OP"
 
 class _AttractorSequential(_CabeanAttractorReprogramming):
     """
-    TODO
+    Attractor-sequential reprogramming strategies consider reprogramming in
+    several steps, where perturbations are performed once in an attractor, and
+    may go through several intermediate attractors before reaching the target
+    one.
     """
     def attractor_to_attractor(self, orig, dest, exclude=None, maxpert=None):
         """
-        TODO
+        Compute attractor-sequential reprogramming strategies for enforcing the reachability
+        of an attractor of the model matching with `dest` from an attractor matching with
+        `orig`.
+        The type of perturbations depends on the class from which this method is
+        called:
+
+        * :py:class:`.AttractorSequential_Instantaneous`
+        * :py:class:`.AttractorSequential_Temporary`
+        * :py:class:`.AttractorSequential_Permanent`
+
+        :keyword list(str) exclude: list of nodes to exclude from perturbations.
+        :keyword int maxpert: maximum number of steps
+
+        :rtype: `algorecell_types.ReprogrammingStrategies <https://algorecell-types.readthedocs.io/#algorecell_types.ReprogrammingStrategies>`_
         """
         args = []
         if exclude:
@@ -169,23 +264,30 @@ class _AttractorSequential(_CabeanAttractorReprogramming):
 
 class AttractorSequential_Instantaneous(_AttractorSequential):
     """
-    TODO
+    Attractor-sequential reprogramming with instantaneous perturbations.
     """
     method = "ASI"
 class AttractorSequential_Temporary(_AttractorSequential):
     """
-    TODO
+    Attractor-sequential reprogramming with temporary perturbations, i.e., to be released
+    once in an attractor
     """
     method = "AST"
 class AttractorSequential_Permanent(_AttractorSequential):
     """
-    TODO
+    Attractor-sequential reprogramming with permanent perturbations. Note that CABEAN only
+    considers attractors of the "wild-type" Boolean networks: permanent
+    reprogramming strategies correspond to the cases whenever temporary
+    perturbations can be sustained forever.
     """
     method = "ASP"
 
 class Sequential_Instantaneous(_CabeanReprogramming):
     """
-    TODO
+    Sequential reprogramming strategies consider reprogramming in several steps,
+    where perturbations are performed in specific states, not necessarily in an
+    attractor.
+    The current implementation only considers instantaneous perturbations.
     """
     method ="GSI"
     def __init__(self, bn):
@@ -197,7 +299,15 @@ class Sequential_Instantaneous(_CabeanReprogramming):
 
     def attractor_to_attractor(self, orig, dest, maxsteps=5, limit=1):
         """
-        TODO
+        Compute sequential reprogramming strategies for enforcing the reachability
+        of an attractor of the model matching with `dest` from states matching
+        `orig`, using instantenous perturbations.
+
+        :keyword list(str) exclude: list of nodes to exclude from perturbations.
+        :keyword int maxsteps: maximum number of steps
+        :keyword int limit: maximum number of solutions
+
+        :rtype: `algorecell_types.ReprogrammingStrategies <https://algorecell-types.readthedocs.io/#algorecell_types.ReprogrammingStrategies>`_
         """
         if limit == 1:
             l = "1"
@@ -237,7 +347,13 @@ class Sequential_Instantaneous(_CabeanReprogramming):
 
 def attractors(model, *spec, **kwspec):
     """
-    TODO
+    Returns the list of attractors of `model`.
+    An attractor is either represented as a
+    ``colomoto.types.TrapSpaceAttractor``, i.e., a dictionnary mapping node
+    names to ``0``, ``1``, or ``*`` (cyclic); or as a
+    ``colomoto.types.TrapSpacesAttractor``, i.e., a list of the former type.
+
+    Arguments are the same as :py:class:`.CabeanInstance`.
     """
     ci = _cabean_instance(model, *spec, **kwspec)
     return list(ci.attractors.values())
