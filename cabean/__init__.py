@@ -349,9 +349,9 @@ def attractors(model, *spec, **kwspec):
     """
     Returns the list of attractors of `model`.
     An attractor is either represented as a
-    ``colomoto.types.TrapSpaceAttractor``, i.e., a dictionnary mapping node
+    ``colomoto.types.Hypercube``, i.e., a dictionnary mapping node
     names to ``0``, ``1``, or ``*`` (cyclic); or as a
-    ``colomoto.types.TrapSpacesAttractor``, i.e., a list of the former type.
+    ``colomoto.types.HypercubeCollection``, i.e., a list of the former type.
 
     :param model: either a `.CabeanInstance` object, or arguments are the same as :py:class:`.CabeanInstance`.
     """

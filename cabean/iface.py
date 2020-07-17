@@ -53,7 +53,7 @@ class CabeanResult(object):
                     num = None
                 else:
                     state = self.parse_state(line.split()[0])
-                    state = TrapSpaceAttractor(state)
+                    state = Hypercube(state)
                     if num not in attractors:
                         attractors[num] = state
                     else:
